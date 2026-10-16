@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sınaq İmtahanı - Hədəflər və Planlama</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+        body { background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 25px; }
+        
+        /* Auth Screen */
+        #auth-screen { text-align: center; padding: 40px 20px; }
+        .input-group { margin-bottom: 20px; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #34495e; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; }
+        .btn-start { padding: 14px 30px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 1.1em; cursor: pointer; transition: 0.3s; }
+        .btn-start:hover { background: #219150; }
+
+        /* Quiz Header Info */
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; background: #ebf5fb; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #3498db; }
+        .user-info { font-weight: bold; color: #2c3e50; font-size: 1.1em; }
+        .timer-box { font-size: 1.2em; font-weight: bold; color: #c0392b; background: #fadbd8; padding: 8px 15px; border-radius: 6px; }
+
+        /* Questions Layout */
+        .quiz-body { display: flex; gap: 20px; }
+        .questions-area { flex: 1; }
+        .nav-panel { width: 180px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; height: fit-content; }
+        .nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+        .nav-btn { padding: 8px; text-align: center; border: 1px solid #ccc; background: #fff; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
+        .nav-btn.answered { background: #27ae60; color: white; border-color: #27ae60; }
+        .nav-btn.active { border: 2px solid #3498db; font-weight: bold; }
+
+        .question-card { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .question-title { font-weight: bold; font-size: 1.1em; color: #2c3e50; margin-bottom: 15px; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option-label { display: flex; align-items: center; background: #fff; border: 1px solid #ccc; padding: 12px 15px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .option-label:hover { background: #eef2f7; border-color: #3498db; }
+        .option-label input { margin-right: 12px; }
+
+        .btn-action { display: block; width: 100%; padding: 15px; background: #2980b9; color: #fff; border: none; border-radius: 8px; font-size: 1.2em; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .btn-action:hover { background: #1f618d; }
+
+        /* Result Screen */
+        #result-screen { display: none; text-align: center; padding: 20px; }
+        .result-card { background: #eaf2f8; border: 2px solid #3498db; padding: 25px; border-radius: 10px; margin-bottom: 25px; }
+        .motivation-msg { font-size: 1.3em; font-weight: bold; color: #27ae60; margin: 15px 0; padding: 15px; background: #d4edda; border-radius: 8px; border: 1px solid #c3e6cb; }
+        
+        .correct-opt { background-color: #d4edda !important; border-color: #28a745 !important; font-weight: bold; }
+        .incorrect-opt { background-color: #f8d7da !important; border-color: #dc3545 !important; }
+
+        /* Teacher Panel */
+        .teacher-section { margin-top: 40px; border-top: 2px dashed #ccc; padding-top: 20px; text-align: center; }
+        .btn-teacher { background: #7f8c8d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        #teacher-panel { display: none; margin-top: 20px; text-align: left; background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+
+        /* Footer */
+        .footer-copyright { text-align: center; margin-top: 30px; font-size: 0.9em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 15px; font-weight: bold; }
+        
+        /* Warning Overlay */
+        #warning-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(192, 57, 43, 0.95); color: white; z-index: 9999; text-align: center; padding-top: 20%; font-size: 1.8em; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="warning-overlay">
+    ⚠️ SƏHİFƏDƏN ÇIXMAQ QADAĞANDIR!<br>
+    <span style="font-size: 0.6em;">3 saniyə ərzində qayıtmasanız imtahanınız sıfırlanacaq!</span>
+</div>
+
+<div class="container">
+    <h1>Hədəflər və Planlama</h1>
+    <p class="subtitle">Sınaq İmtahanı Portalı</p>
+
+    <!-- Giriş Ekranı -->
+    <div id="auth-screen">
+        <h2>İmtahana Başlamazdan Əvvəl Məlumatlarınızı Daxil Edin</h2>
+        <div class="input-group">
+            <label for="student-name">Adınız:</label>
+            <input type="text" id="student-name" placeholder="Adınızı daxil edin" required>
+        </div>
+        <div class="input-group">
+            <label for="student-surname">Soyadınız:</label>
+            <input type="text" id="student-surname" placeholder="Soyadınızı daxil edin" required>
+        </div>
+        <p style="color: #c0392b; font-size: 0.9em;">* Qeyd: İmtahan zamanı başqa pəncərəyə keçmək və ya səhifədən çıxmaq qadağandır. Əks halda imtahanınız ləğv olunacaq!</p>
+        <button class="btn-start" onclick="startExam()">İmtahana Başla</button>
+    </div>
+
+    <!-- İmtahan Ekranı -->
+    <div id="quiz-screen" style="display: none;">
+        <div class="quiz-header">
+            <div class="user-info">Tələbə: <span id="display-user-name"></span></div>
+            <div class="timer-box">Qalan Vaxt: <span id="timer">45:00</span></div>
+        </div>
+
+        <div class="quiz-body">
+            <div class="questions-area">
+                <form id="quiz-form">
+                    <div id="questions-container"></div>
+                    <button type="button" class="btn-action" onclick="submitExam(false)">İmtahanı Bitir</button>
+                </form>
+            </div>
+            <div class="nav-panel">
+                <h4>Suallar</h4>
+                <div class="nav-grid" id="nav-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nəticə Ekranı -->
+    <div id="result-screen">
+        <h2>İmtahan Nəticəniz</h2>
+        <div class="result-card">
+            <h3>Tələbə: <span id="res-user-name"></span></h3>
+            <p style="font-size: 1.2em;">Doğru Cavab Sayı: <b id="res-correct" style="color: #27ae60;">0</b> / 35</p>
+            <p style="font-size: 1.2em;">Səhv Cavab Sayı: <b id="res-incorrect" style="color: #c0392b;">0</b> / 35</p>
+            <p style="font-size: 1.4em;">Toplanan Bal: <b id="res-score" style="color: #2980b9;">0%</b></p>
+            
+            <div id="motivation-box" class="motivation-msg" style="display: none;">
+                Mükəmməlsən, mən bilirdim sən bunun öhdəsindən gələcəksən!
+            </div>
+        </div>
+        <p>Aşağıda sualların cavablarını və səhvlərinizi nəzərdən keçirə bilərsiniz:</p>
+        <div id="review-container" style="text-align: left;"></div>
+    </div>
+
+    <!-- Müəllim Paneli Bölməsi -->
+    <div class="teacher-section">
+        <button class="btn-teacher" onclick="toggleTeacherPanel()">Müəllim Paneli (Nəticələrə Bax)</button>
+        <div id="teacher-panel">
+            <h3>Tələbələrin İmtahan Nəticələri</h3>
+            <button onclick="downloadCSV()" style="margin-bottom: 10px; padding: 6px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">Excel (CSV) kimi endir</button>
+            <button onclick="clearResults()" style="margin-bottom: 10px; padding: 6px 12px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer; float: right;">Nəticələri Sıfırla</button>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>Tarix</th>
+                        <th>Ad Soyad</th>
+                        <th>Doğru</th>
+                        <th>Səhv</th>
+                        <th>Bal (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="results-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Müəllif Hüququ Qeydi -->
+    <div class="footer-copyright">
+        Müəllif hüququ i.f.d. İlknur Rəcəbli tərəfindən qorunur.
+    </div>
+</div>
+
+<script>
+const quizData = [
+    { q: "1. Biznes məqsədləri üçün hədəflərin düzgün qoyulmasının əsas səbəblərindən biri hansıdır?", options: ["Rəqiblərin məhsullarını nusxələmək", "Nəticələri dəqiq və səlis ölçmək", "Şirkətin xərclərini iki dəfə artırmaq", "Yalnız işçilərin sayını çoxaltsın"], correct: 1 },
+    { q: "2. Məqsəd nədir?", options: ["Təsadüfən əldə olunan nəticədir", "Səylərin yönəldildiyi nəticə və ya nailiyyətdir", "Bütün rəqibləri bazardan çıxarmaqdır", "Şirkətin gündəlik istifadə etdiyi proqramdır"], correct: 1 },
+    { q: "3. Komandanıza istəklərinizi aydın çatdırmaq üçün ilk növbədə nə edilməlidir?", options: ["Hədəflər/məqsədlər müəyyənləşdirilməlidir", "Sosial mediada reklam dayandırılmalıdır", "Xidmət qiymətləri qaldırılmalıdır", "Proqram təminatı silinməlidir"], correct: 0 },
+    { q: "4. LILAC şirkətinin əsas məramı nədir?", options: ["IT təhsil vermək", "Yemək çatdırmaq", "Gül satmaq", "Proqram təminatı yazmaq"], correct: 2 },
+    { q: "5. LILAC şirkətinin alt məqsədlərinə hansı daxildir?", options: ["Çatdırılma zonalarını artırmaq", "Tədris prosesini maraqlı etmək", "Çatdırılma və qablaşdırma xərclərini optimallaşdırmaq", "Mobil tətbiq hazırlamaq"], correct: 2 },
+    { q: "6. STEP IT Academy-nin əsas məramı nədir?", options: ["Yemək çatdırmaq", "IT təhsil vermək", "Gül satmaq", "Taksi xidməti göstərmək"], correct: 1 },
+    { q: "7. STEP IT Academy üçün alt məqsəd kimi hansı göstərilə bilər?", options: ["Tədrisi dayandıranların sayını azaltmaq", "Çatdırılma müddətini qısaltmaq", "Gül çeşidlərini artırmaq", "Kuryerlərin sayını artırmaq"], correct: 0 },
+    { q: "8. Wolt şirkətinin əsas məramı nədir?", options: ["Təhsil vermək", "Yemək çatdırmaq", "Avtomobil satmaq", "Çiçək bəzədilməsi"], correct: 1 },
+    { q: "9. Wolt şirkətinin məqsədlərindən biri hansıdır?", options: ["Qablaşdırma xərclərini iki dəfə artırmaq", "Restoran şəbəkəsini genişləndirmək", "Tələbə cəlb olunma xərcini azaltmaq", "Axtarış mühərriki yaratmaq"], correct: 1 },
+    { q: "10. Unique Selling Proposition (USP) nədir?", options: ["Aylıq maliyyə hesabatı", "Unikal Satış Təklifi", "Sosial media şəbəkəsi", "Müştəri məmnuniyyəti sorğusu"], correct: 1 },
+    { q: "11. USP (Unikal Satış Təklifi) termini neçənci illərdə yaradılmışdır?", options: ["1920-ci illərdə", "1940-cı illərdə", "1980-ci illərdə", "2000-ci illərdə"], correct: 1 },
+    { q: "12. Unikal Satış Təklifi terminini icad edən şəxs kimdir?", options: ["Philip Kotler", "Rosser Reeves", "Steve Jobs", "Bill Gates"], correct: 1 },
+    { q: "13. UST-nin (USP) əsas mahiyyəti nədir?", options: ["Məhsulu rəqiblərinkindən fərqləndirən xarakteristikaları formalaşdırmaq", "Qiymətləri bazar qiymətindən baha etmək", "İşçilərin maaşlarını hesablamaq", "Şirkətin adını dəyişmək"], correct: 0 },
+    { q: "14. Unikal Satış Təklifi qurularkən hansı 3 ana sütun əsas götürülür?", options: ["Sürət, Baha qiymət, Reklam", "Fayda, Unikallıq, İnandırıcılıq", "Sayı, Həcmi, Rəngi", "Tarixi, Yeri, Brendi"], correct: 1 },
+    { q: "15. Unikal Satış Təklifinin universal formulasına hansı element daxil DEYİL?", options: ["Məhsul və ya xidmətin adı", "Digərlərindən nə ilə fərqlənməsi", "Fərqlənmə səbəbi (Niyə?)", "İşçilərin yaş həddi"], correct: 3 },
+    { q: "16. Google-un unikal satış təklifində 'Niyə?' sualının cavabı nə kimi göstərilir?", options: ["Çünki pulsuzdur", "Çünki hər zaman texnologiyalarını yaxşılaşdırır və inkişaf etdirir", "Çünki ən köhnə axtarış sistemidir", "Çünki yalnız mobil telefonlarda işləyir"], correct: 1 },
+    { q: "17. SMART hədəfləmə abreviaturasında 'S' hərfi nəyi bildirir?", options: ["Systematic", "Specific (Spesifik)", "Simple", "Social"], correct: 1 },
+    { q: "18. SMART abreviaturasında 'M' hərfi nəyi ifadə edir?", options: ["Measurable (Ölçülə bilən)", "Modern", "Market-oriented", "Monthly"], correct: 0 },
+    { q: "19. SMART hədəf anlayışında 'A' hərfi nəyi bildirir?", options: ["Automatic", "Achievable (Əldə edilə bilən)", "Absolute", "Attractive"], correct: 1 },
+    { q: "20. SMART abreviaturasında 'R' hərfi nəyi ifadə edir?", options: ["Rapid", "Relevant (Məqsədə/Biznesə uyğun)", "Risk-free", "Real-time"], correct: 1 },
+    { q: "21. SMART abreviaturasında 'T' hərfi nəyi ifadə edir?", options: ["Technical", "Time-bound (Zamana bağlı)", "Total", "Targeted"], correct: 1 },
+    { q: "22. 'İzləyici sayını 500-ə çatdırmaq' ifadəsi SMART-ın hansı kriteriyasına nümunədir?", options: ["Zamana bağlı", "Ölçülə bilən (Measurable)", "Spesifik olmayan", "Zaman çərçivəsində olmayan"], correct: 1 },
+    { q: "23. 'May ayı ərzində' ifadəsi SMART hədəfləmənin hansı xüsusiyyətini əks etdirir?", options: ["Zamana bağlı (Time-bound)", "Əldə edilə bilməyən", "Mürəkkəblik", "Unikallıq"], correct: 0 },
+    { q: "24. Hədəfin spesifik olması nə deməkdir?", options: ["Hamının başa düşə biləcəyi dəqiq şəkildə izah olunması", "Mətnin çox uzun yazılması", "Yalnız rəhbərliyin anlaması", "Hədəfin hər gün dəyişməsi"], correct: 0 },
+    { q: "25. Hədəfin 'Relevant' (Uyğun) olması nə deməkdir?", options: ["Hədəflərin biznesin ümumi hədəflərinə uyğun olması və ona xidmət etməsi", "Müştərilərin istəyinə baxılmaması", "Şirkətin büdcəsini aşması", "Ancaq xarici bazara yönəlməsi"], correct: 0 },
+    { q: "26. KPI abreviaturasının ingiliscə tam açılışı nədir?", options: ["Key Performance Indicator", "Key Process Integration", "Known Product Index", "Keep Performance Idea"], correct: 0 },
+    { q: "27. KPI Azərbaycan dilinə necə tərcümə olunur?", options: ["Əsas Performans Göstəricisi", "Biznes Maliyyə İndeksi", "Planlama Strategiyası", "Sosial Media Reklamı"], correct: 0 },
+    { q: "28. KPI-ın əsas funksiyası nədir?", options: ["Hədəfə doğru irəliləməni izləməyə kömək edən ölçülə bilən dəyər olmaq", "Məhsulun xarici görünüşünü dizayn etmək", "İşçilərə cərimə kəsmək", "Saytın rəngini seçmək"], correct: 0 },
+    { q: "29. KPI necə qurulmalıdır?", options: ["Kəmiyyət əsaslı, istiqamətli və hədəfə bağlı", "Qeyri-müəyyən, ölçülməyən və gizli", "Yalnız illik hesabatlar üçün", "Hədəfə bağlı olmayan sərbəst rəqəm"], correct: 0 },
+    { q: "30. KPI və Metrikalar haqqında hansı mühakimə DÜZGÜNDÜR?", options: ["Bütün metrikalar KPI-dır", "Bütün KPI-lar göstəricidir (metrikadır), lakin bütün göstəricilər KPI deyil", "KPI və metrika eyni anlayışlardır", "KPI heç vaxt kəmiyyətlə ölçülmür"], correct: 1 },
+    { q: "31. Metrikalar nəyi bildirir?", options: ["Müəyyən fərdi aktivliklərinizin nəticəsini", "Şirkətin 10 illik strategiyasını", "Unikal satış təklifinin inandırıcılığını", "Şirkətin məramını"], correct: 0 },
+    { q: "32. Klik göstəricisi, son 2 həftə ərzində danışıq sayı hansı anlayışa misaldır?", options: ["Metrika (göstərici)", "KPI", "Məram", "Vizion"], correct: 0 },
+    { q: "33. E-mail marketing KPI-ı və ya öncədən satış üzrə KPI hansı anlayışa misaldır?", options: ["Sadə fərdi aktivlik", "KPI (Əsas Performans Göstəricisi)", "Sərbəst metrika", "Missiya bəyanatı"], correct: 1 },
+    { q: "34. KPI sizə nəyi bildirir?", options: ["Qoyduğunuz məqsədə çatmaq üçün hazırda harada olduğunuzu", "Gələcək rəqiblərin kim olacağını", "Proqram təminatındakı xətaları", "Məhsulun maya dəyərini"], correct: 0 },
+    { q: "35. 'May ayı ərzində Instagram səhifəsinin izləyicilərinin sayını 500-ə çatdırmaq' hədəfi üçün KPI nə olacaq?", options: ["Səhifənin dizayn üslubu", "Aylıq səhifə izləyicilərinin göstəricisi", "Göndərilən mesajların mətni", "Rəqiblərin izləyici sayı"], correct: 1 }
+];
+
+let studentFullName = "";
+let timerInterval;
+let timeLeft = 45 * 60; // 45 dəqiqə
+let blurTimeout;
+let cheatingViolations = 0;
+
+function startExam() {
+    const name = document.getElementById('student-name').value.trim();
+    const surname = document.getElementById('student-surname').value.trim();
+
+    if (!name || !surname) {
+        alert("Zəhmət olmasa Ad və Soyadınızı daxil edin!");
+        return;
+    }
+
+    studentFullName = name + " " + surname;
+    document.getElementById('display-user-name').innerText = studentFullName;
+
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('quiz-screen').style.display = 'block';
+
+    // Fullscreen Mode
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+
+    renderQuiz();
+    startTimer();
+    enableAntiCheating();
+}
+
+function renderQuiz() {
+    const container = document.getElementById('questions-container');
+    const navGrid = document.getElementById('nav-grid');
+    container.innerHTML = '';
+    navGrid.innerHTML = '';
+
+    quizData.forEach((item, index) => {
+        // Build question cards
+        const qCard = document.createElement('div');
+        qCard.className = 'question-card';
+        qCard.id = `q-card-${index}`;
+
+        let optionsHTML = '';
+        item.options.forEach((opt, optIndex) => {
+            optionsHTML += `
+                <label class="option-label" id="opt-label-${index}-${optIndex}">
+                    <input type="radio" name="q${index}" value="${optIndex}" onchange="markAnswered(${index})">
+                    ${opt}
+                </label>
+            `;
+        });
+
+        qCard.innerHTML = `
+            <div class="question-title">${item.q}</div>
+            <div class="options">${optionsHTML}</div>
+        `;
+        container.appendChild(qCard);
+
+        // Build Nav Buttons
+        const navBtn = document.createElement('div');
+        navBtn.className = 'nav-btn';
+        navBtn.id = `nav-btn-${index}`;
+        navBtn.innerText = index + 1;
+        navBtn.onclick = () => {
+            document.getElementById(`q-card-${index}`).scrollIntoView({ behavior: 'smooth' });
+        };
+        navGrid.appendChild(navBtn);
+    });
+}
+
+function markAnswered(index) {
+    document.getElementById(`nav-btn-${index}`).classList.add('answered');
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        document.getElementById('timer').innerText = 
+            `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert("Vaxtınız bitdi! Cavablarınız təhvil verilir.");
+            submitExam(true);
+        }
+    }, 1000);
+}
+
+function enableAntiCheating() {
+    // Copy/Paste Restrictions
+    document.addEventListener('copy', (e) => e.preventDefault());
+    document.addEventListener('paste', (e) => e.preventDefault());
+
+    // Tab/Window Change Detection
+    window.addEventListener('blur', () => {
+        cheatingViolations++;
+        document.getElementById('warning-overlay').style.display = 'block';
+
+        blurTimeout = setTimeout(() => {
+            alert("Səhifədən kənara çıxdığınız üçün imtahanınız ləğv edildi!");
+            location.reload();
+        }, 3000);
+    });
+
+    window.addEventListener('focus', () => {
+        document.getElementById('warning-overlay').style.display = 'none';
+        clearTimeout(blurTimeout);
+    });
+}
+
+function submitExam(autoSubmit = false) {
+    if (!autoSubmit && !confirm("İmtahanı bitirmək istədiyinizdən əminsiniz?")) {
+        return;
+    }
+
+    clearInterval(timerInterval);
+
+    let correctCount = 0;
+    let reviewHTML = '';
+
+    quizData.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        let userAns = selected ? parseInt(selected.value) : -1;
+
+        if (userAns === item.correct) {
+            correctCount++;
+        }
+
+        // Prepare Review HTML
+        let optsReview = '';
+        item.options.forEach((opt, optIndex) => {
+            let cls = '';
+            if (optIndex === item.correct) cls = 'correct-opt';
+            else if (optIndex === userAns && userAns !== item.correct) cls = 'incorrect-opt';
+
+            optsReview += `<div class="option-label ${cls}" style="margin-bottom: 5px;">${opt}</div>`;
+        });
+
+        reviewHTML += `
+            <div class="question-card">
+                <div class="question-title">${item.q}</div>
+                <div>${optsReview}</div>
+            </div>
+        `;
+    });
+
+    let incorrectCount = quizData.length - correctCount;
+    let percentage = Math.round((correctCount / quizData.length) * 100);
+
+    // Render Results Screen
+    document.getElementById('quiz-screen').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+
+    document.getElementById('res-user-name').innerText = studentFullName;
+    document.getElementById('res-correct').innerText = correctCount;
+    document.getElementById('res-incorrect').innerText = incorrectCount;
+    document.getElementById('res-score').innerText = `${percentage}%`;
+    document.getElementById('review-container').innerHTML = reviewHTML;
+
+    // Show special message for 30+ score
+    if (correctCount >= 30) {
+        document.getElementById('motivation-box').style.display = 'block';
+    }
+
+    // Save to LocalStorage for Teacher
+    saveResultToStorage(studentFullName, correctCount, incorrectCount, percentage);
+}
+
+function saveResultToStorage(name, correct, incorrect, score) {
+    let results = JSON.parse(localStorage.getItem('exam_results') || '[]');
+    results.push({
+        date: new Date().toLocaleString('az-AZ'),
+        name: name,
+        correct: correct,
+        incorrect: incorrect,
+        score: score
+    });
+    localStorage.setItem('exam_results', JSON.stringify(results));
+}
+
+function toggleTeacherPanel() {
+    let pass = prompt("Müəllim paneli üçün parolu daxil edin:");
+    if (pass === "1234") {
+        document.getElementById('teacher-panel').style.display = 'block';
+        loadTeacherResults();
+    } else if (pass !== null) {
+        alert("Məxfi parol yanlışdır!");
+    }
+}
+
+function loadTeacherResults() {
+    let results = JSON.parse(localStorage.getItem('exam_results') || '[]');
+    let tbody = document.getElementById('results-tbody');
+    tbody.innerHTML = '';
+
+    results.forEach(res => {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${res.date}</td>
+            <td><b>${res.name}</b></td>
+            <td style="color: green;">${res.correct}</td>
+            <td style="color: red;">${res.incorrect}</td>
+            <td><b>${res.score}%</b></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function downloadCSV() {
+    let results = JSON.parse(localStorage.getItem('exam_results') || '[]');
+    if (results.length === 0) {
+        alert("Siyahıda heç bir nəticə yoxdur.");
+        return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,Tarix,Ad Soyad,Dogru,Sehv,Bal(%)\n";
+    results.forEach(r => {
+        csvContent += `"${r.date}","${r.name}",${r.correct},${r.incorrect},${r.score}\n`;
+    });
+
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "imtahan_neticeleri.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function clearResults() {
+    if (confirm("Bütün tələbə nəticələrini silmək istədiyinizdən əminsiniz?")) {
+        localStorage.removeItem('exam_results');
+        loadTeacherResults();
+    }
+}
+</script>
+
+</body>
+</html>
